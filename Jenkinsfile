@@ -2,18 +2,19 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Install Newman') {
+        stage('Check Newman') {
             steps {
-                sh 'npm install -g newman'
+                sh 'node -v'
+                sh 'npm -v'
+                sh 'newman -v'
             }
         }
 
         stage('Run Postman Collection') {
             steps {
                 sh '''
-                newman run postman/DEMO-API.postman_collection.json \
-                -e postman/SIT.postman_environment.json
+                newman run DEMO-API.postman_collection.json \
+                -e SIT.postman_environment.json
                 '''
             }
         }
