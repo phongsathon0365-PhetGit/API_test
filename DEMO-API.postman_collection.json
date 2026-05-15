@@ -1,0 +1,1934 @@
+{
+  "info": {
+    "_postman_id": "20436212-bd70-4b0e-8e48-ca74f968f6a9",
+    "name": "DEMO-API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "30216545"
+  },
+  "item": [
+    {
+      "name": "S1-Order Book - Success",
+      "item": [
+        {
+          "name": "1.status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate status ok\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.status).to.eql(\"OK\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/status",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.Get all book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"name\",\r",
+                  "    \"type\",\r",
+                  "    \"available\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: {type: \"integer\"},\r",
+                  "    name: {type: \"string\"},\r",
+                  "    type: {type: \"string\",},\r",
+                  "    available: {type: \"boolean\"}\r",
+                  "  },\r",
+                  "  additionalProperties: false\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('fiction books must be available', function () {\r",
+                  "    const res = pm.response.json();\r",
+                  "\r",
+                  "    res.forEach((item, index) => {\r",
+                  "        if (item.type === 'fiction') {\r",
+                  "            pm.expect(item.available,`fiction book id ${item.id} is not available`\r",
+                  "            ).to.be.true;\r",
+                  "        }\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.Get list-book details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"entityType\",\r",
+                  "    \"available\",\r",
+                  "    \"timestamp\",\r",
+                  "    \"created\",\r",
+                  "    \"name\",\r",
+                  "    \"current-stock\",\r",
+                  "    \"price\",\r",
+                  "    \"author\",\r",
+                  "    \"type\",\r",
+                  "    \"PK\",\r",
+                  "    \"SK\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"integer\", minimum: 1 },\r",
+                  "    entityType: { type: \"string\", enum: [\"BOOK\"] },\r",
+                  "    available: { type: \"boolean\" },\r",
+                  "    timestamp: { type: \"integer\" }, // ms\r",
+                  "    created: { type: \"string\" },    // ถ้าจะ strict ใช้ date-time ต้องเป็น draft ที่รองรับ format\r",
+                  "    \"current-stock\": { type: \"integer\", minimum: 0 },\r",
+                  "    price: { type: \"number\", minimum: 0 },\r",
+                  "    author: { type: \"string\", minLength: 1 },\r",
+                  "    type: { type: \"string\", enum: [\"fiction\", \"non-fiction\"] },\r",
+                  "    GSI1PK: { type: \"string\", pattern: \"^TYPE#(fiction|non-fiction)$\" },\r",
+                  "    GSI1SK: { type: \"string\" },\r",
+                  "    PK: { type: \"string\", pattern: \"^BOOK#[0-9]+$\" },\r",
+                  "    SK: { type: \"string\", enum: [\"METADATA\"] }\r",
+                  "  },\r",
+                  "  additionalProperties: true // ถ้าอยากเข้มงวดเปลี่ยนเป็น false\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is valid JSON\", () => {\r",
+                  "  pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Response matches BOOK schema\", () => {\r",
+                  "  pm.expect(json).to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validate 'type' as 'fiction' and 'non-fiction' \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.type).to.be.oneOf([\"fiction\", \"non-fiction\"]);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books/:bookId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books",
+                ":bookId"
+              ],
+              "variable": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.Authentication API - Loing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// pm.test(\"Status code is 409\", function () {\r",
+                  "//     pm.response.to.have.status(409);\r",
+                  "// });\r",
+                  "\r",
+                  "// pm.test(\"varidate error msg\", function () {\r",
+                  "//     var jsonData = pm.response.json();\r",
+                  "//     pm.expect(jsonData.error).to.eql(\"API client already registered. Try a different email.\");\r",
+                  "// });\r",
+                  "\r",
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate 'accesstoken' have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.accessToken).to.not.eql(null);\r",
+                  "    pm.environment.set(\"token\", jsonData.accessToken);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var lastNamerundom = pm.variables.replaceIn('{{$randomUserName}}')\r",
+                  "pm.environment.set(\"lastName\" , lastNamerundom)\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientName\": \"Name {{lastName}}\",\r\n    \"clientEmail\": \"{{lastName}}@example.phet.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/api-clients/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "api-clients",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.Submit an order books",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate orderId  have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.orderId).to.not.eql(null);\r",
+                  "    pm.environment.set(\"orderId\",jsonData.orderId);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bookId\": {{bookId}},\r\n  \"customerName\": \" API TEST BY {{lastName}} \"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.Get an all order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var orderId = pm.environment.get(\"orderId\");\r",
+                  "pm.test(\"varidate orderId have in list\" , function (){\r",
+                  "    pm.expect(pm.response.text()).to.include(orderId);\r",
+                  "});\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "customerName",
+                  "value": "John",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.Get ad orders details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var bookId = pm.environment.get(\"bookId\");\r",
+                  "pm.test(\"varidate 'bookId' have correct value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.bookId).to.eql(parseInt(bookId));\r",
+                  "});\r",
+                  "\r",
+                  "var lastName  = pm.environment.get(\"lastName\");\r",
+                  "pm.test(\"varidate Your Name \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    var expectedName = `API TEST BY ${lastName}`;\r",
+                  "    pm.expect(jsonData.customerName.trim()).to.eql(expectedName);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "S2-Update Order - Success",
+      "item": [
+        {
+          "name": "1.status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate status ok\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.status).to.eql(\"OK\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/status",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.Get all book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"name\",\r",
+                  "    \"type\",\r",
+                  "    \"available\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: {type: \"integer\"},\r",
+                  "    name: {type: \"string\"},\r",
+                  "    type: {type: \"string\",},\r",
+                  "    available: {type: \"boolean\"}\r",
+                  "  },\r",
+                  "  additionalProperties: false\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.Get list-book details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"entityType\",\r",
+                  "    \"available\",\r",
+                  "    \"timestamp\",\r",
+                  "    \"created\",\r",
+                  "    \"name\",\r",
+                  "    \"current-stock\",\r",
+                  "    \"price\",\r",
+                  "    \"author\",\r",
+                  "    \"type\",\r",
+                  "    \"PK\",\r",
+                  "    \"SK\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"integer\", minimum: 1 },\r",
+                  "    entityType: { type: \"string\", enum: [\"BOOK\"] },\r",
+                  "    available: { type: \"boolean\" },\r",
+                  "    timestamp: { type: \"integer\" }, // ms\r",
+                  "    created: { type: \"string\" },    // ถ้าจะ strict ใช้ date-time ต้องเป็น draft ที่รองรับ format\r",
+                  "    \"current-stock\": { type: \"integer\", minimum: 0 },\r",
+                  "    price: { type: \"number\", minimum: 0 },\r",
+                  "    author: { type: \"string\", minLength: 1 },\r",
+                  "    type: { type: \"string\", enum: [\"fiction\", \"non-fiction\"] },\r",
+                  "    GSI1PK: { type: \"string\", pattern: \"^TYPE#(fiction|non-fiction)$\" },\r",
+                  "    GSI1SK: { type: \"string\" },\r",
+                  "    PK: { type: \"string\", pattern: \"^BOOK#[0-9]+$\" },\r",
+                  "    SK: { type: \"string\", enum: [\"METADATA\"] }\r",
+                  "  },\r",
+                  "  additionalProperties: true // ถ้าอยากเข้มงวดเปลี่ยนเป็น false\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is valid JSON\", () => {\r",
+                  "  pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Response matches BOOK schema\", () => {\r",
+                  "  pm.expect(json).to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validate 'type' as 'fiction' and 'non-fiction' \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.type).to.be.oneOf([\"fiction\", \"non-fiction\"]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validate 'type' as 'fiction'\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.type).to.eql(\"fiction\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books/:bookId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books",
+                ":bookId"
+              ],
+              "variable": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.Authentication API - Loing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// pm.test(\"Status code is 409\", function () {\r",
+                  "//     pm.response.to.have.status(409);\r",
+                  "// });\r",
+                  "\r",
+                  "// pm.test(\"varidate error msg\", function () {\r",
+                  "//     var jsonData = pm.response.json();\r",
+                  "//     pm.expect(jsonData.error).to.eql(\"API client already registered. Try a different email.\");\r",
+                  "// });\r",
+                  "\r",
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate 'accesstoken' have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.accessToken).to.not.eql(null);\r",
+                  "    pm.environment.set(\"token\", jsonData.accessToken);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var lastNamerundom = pm.variables.replaceIn('{{$randomUserName}}')\r",
+                  "pm.environment.set(\"lastName\" , lastNamerundom)\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientName\": \"Name {{lastName}}\",\r\n    \"clientEmail\": \"{{lastName}}@example.phet.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/api-clients/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "api-clients",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.Submit an order books",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate orderId  have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.orderId).to.not.eql(null);\r",
+                  "    pm.environment.set(\"orderId\",jsonData.orderId);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bookId\": {{bookId}},\r\n  \"customerName\": \" API TEST BY {{lastName}} \"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.Get an all order Before Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var orderId = pm.environment.get(\"orderId\");\r",
+                  "pm.test(\"varidate orderId have in list\" , function (){\r",
+                  "    pm.expect(pm.response.text()).to.include(orderId);\r",
+                  "});\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "customerName",
+                  "value": "John",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.Get ad orders details Before Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var bookId = pm.environment.get(\"bookId\");\r",
+                  "pm.test(\"varidate 'bookId' have correct value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.bookId).to.eql(parseInt(bookId));\r",
+                  "});\r",
+                  "\r",
+                  "var lastName = pm.environment.get(\"lastName\");\r",
+                  "pm.test(\"varidate Your Name \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    var expectedName = `API TEST BY ${lastName}`;\r",
+                  "    pm.expect(jsonData.customerName.trim()).to.eql(expectedName);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8.Update an order details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "    pm.response.to.have.status(204);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate no response mag \", function () {\r",
+                  "    pm.response.to.not.be.withBody;\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"customerName\": \"Update by {{lastName}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.Get an all order After Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var orderId = pm.environment.get(\"orderId\");\r",
+                  "pm.test(\"varidate orderId have in list\" , function (){\r",
+                  "    pm.expect(pm.response.text()).to.include(orderId);\r",
+                  "});\r",
+                  "\r",
+                  "var lastName = pm.environment.get(\"lastName\");\r",
+                  "pm.test(\"Varidate 'customerName' have update\", function () {\r",
+                  "    pm.expect(pm.response.text()).to.include(\"Update by \"+lastName);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "customerName",
+                  "value": "John",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10.Get ad orders details After Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var bookId = pm.environment.get(\"bookId\");\r",
+                  "pm.test(\"varidate 'bookId' have correct value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.bookId).to.eql(parseInt(bookId));\r",
+                  "});\r",
+                  "\r",
+                  "var lastName = pm.environment.get(\"lastName\");\r",
+                  "pm.test(\"Varidate 'customerName' have update\", function () {\r",
+                  "    pm.expect(pm.response.text()).to.include(\"Update by \"+lastName);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "S3-Delete Order - Success",
+      "item": [
+        {
+          "name": "1.status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate status ok\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.status).to.eql(\"OK\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/status",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.Get all book",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"name\",\r",
+                  "    \"type\",\r",
+                  "    \"available\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: {type: \"integer\"},\r",
+                  "    name: {type: \"string\"},\r",
+                  "    type: {type: \"string\",},\r",
+                  "    available: {type: \"boolean\"}\r",
+                  "  },\r",
+                  "  additionalProperties: false\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.Get list-book details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"entityType\",\r",
+                  "    \"available\",\r",
+                  "    \"timestamp\",\r",
+                  "    \"created\",\r",
+                  "    \"name\",\r",
+                  "    \"current-stock\",\r",
+                  "    \"price\",\r",
+                  "    \"author\",\r",
+                  "    \"type\",\r",
+                  "    \"PK\",\r",
+                  "    \"SK\"\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"integer\", minimum: 1 },\r",
+                  "    entityType: { type: \"string\", enum: [\"BOOK\"] },\r",
+                  "    available: { type: \"boolean\" },\r",
+                  "    timestamp: { type: \"integer\" }, // ms\r",
+                  "    created: { type: \"string\" },    // ถ้าจะ strict ใช้ date-time ต้องเป็น draft ที่รองรับ format\r",
+                  "    \"current-stock\": { type: \"integer\", minimum: 0 },\r",
+                  "    price: { type: \"number\", minimum: 0 },\r",
+                  "    author: { type: \"string\", minLength: 1 },\r",
+                  "    type: { type: \"string\", enum: [\"fiction\", \"non-fiction\"] },\r",
+                  "    GSI1PK: { type: \"string\", pattern: \"^TYPE#(fiction|non-fiction)$\" },\r",
+                  "    GSI1SK: { type: \"string\" },\r",
+                  "    PK: { type: \"string\", pattern: \"^BOOK#[0-9]+$\" },\r",
+                  "    SK: { type: \"string\", enum: [\"METADATA\"] }\r",
+                  "  },\r",
+                  "  additionalProperties: true // ถ้าอยากเข้มงวดเปลี่ยนเป็น false\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is valid JSON\", () => {\r",
+                  "  pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Response matches BOOK schema\", () => {\r",
+                  "  pm.expect(json).to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validate 'type' as 'fiction' and 'non-fiction' \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.type).to.be.oneOf([\"fiction\", \"non-fiction\"]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validate 'type' as 'fiction'\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.type).to.eql(\"fiction\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/books/:bookId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "books",
+                ":bookId"
+              ],
+              "variable": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.Authentication API - Loing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// pm.test(\"Status code is 409\", function () {\r",
+                  "//     pm.response.to.have.status(409);\r",
+                  "// });\r",
+                  "\r",
+                  "// pm.test(\"varidate error msg\", function () {\r",
+                  "//     var jsonData = pm.response.json();\r",
+                  "//     pm.expect(jsonData.error).to.eql(\"API client already registered. Try a different email.\");\r",
+                  "// });\r",
+                  "\r",
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate 'accesstoken' have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.accessToken).to.not.eql(null);\r",
+                  "    pm.environment.set(\"token\", jsonData.accessToken);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var lastNamerundom = pm.variables.replaceIn('{{$randomUserName}}')\r",
+                  "pm.environment.set(\"lastName\" , lastNamerundom)\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientName\": \"Name {{lastName}}\",\r\n    \"clientEmail\": \"{{lastName}}@example.phet.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/api-clients/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "api-clients",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.Submit an order books",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate orderId  have value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.orderId).to.not.eql(null);\r",
+                  "    pm.environment.set(\"orderId\",jsonData.orderId);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bookId\": {{bookId}},\r\n  \"customerName\": \" API TEST BY {{lastName}} \"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.Get an all order Before Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var orderId = pm.environment.get(\"orderId\");\r",
+                  "pm.test(\"varidate orderId have in list\" , function (){\r",
+                  "    pm.expect(pm.response.text()).to.include(orderId);\r",
+                  "});\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "customerName",
+                  "value": "John",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.Get ad orders details Before Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"object\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "var bookId = pm.environment.get(\"bookId\");\r",
+                  "pm.test(\"varidate 'bookId' have correct value\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.bookId).to.eql(parseInt(bookId));\r",
+                  "});\r",
+                  "\r",
+                  "var lastName = pm.environment.get(\"lastName\");\r",
+                  "pm.test(\"varidate Your Name \", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    var expectedName = `API TEST BY ${lastName}`;\r",
+                  "    pm.expect(jsonData.customerName.trim()).to.eql(expectedName);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8.Delete an order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "    pm.response.to.have.status(204);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"varidate no response mag \", function () {\r",
+                  "    pm.response.to.not.be.withBody;\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BaseURL}}/orders/:orderId",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ":orderId"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.Get an all order After Update Copy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ---------- JSON Schema ----------\r",
+                  "const schema = {\r",
+                  "  type: \"array\",\r",
+                  "  required: [\r",
+                  "    \"id\",\r",
+                  "    \"bookId\",\r",
+                  "    \"customerName\",\r",
+                  "    \"quantity\",\r",
+                  "    \"timestamp\",\r",
+                  "  ],\r",
+                  "  properties: {\r",
+                  "    id: { type: \"string\"},\r",
+                  "    bookId: {type: \"number\"} ,\r",
+                  "    customerName: { type: \"string\"},\r",
+                  "    quantity: { type: \"number\" },\r",
+                  "    timestamp: { type: \"integer\" }\r",
+                  "  },\r",
+                  "  \"required\":[\r",
+                  "      \"id\",\r",
+                  "      \"customerName\",\r",
+                  "  ]\r",
+                  "};\r",
+                  "\r",
+                  "// ---------- Tests ----------\r",
+                  "pm.test(\"Status code is 200\", () => {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test('schema is valid' , function (){\r",
+                  "  pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "// var orderId = pm.environment.get(\"orderId\");\r",
+                  "// pm.test(\"varidate orderId have in list\" , function (){\r",
+                  "//     pm.expect(pm.response.text()).to.include(orderId);\r",
+                  "// });\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BaseURL}}/orders/",
+              "host": [
+                "{{BaseURL}}"
+              ],
+              "path": [
+                "orders",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "customerName",
+                  "value": "John",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
