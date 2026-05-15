@@ -13,8 +13,8 @@ pipeline {
         stage('Run Postman Collection') {
             steps {
                 sh '''
-                newman run DEMO-API.postman_collection.json \
-                -e SIT.postman_environment.json
+                newman run postman/DEMO-API.postman_collection.json \
+			-e postman/SIT.postman_environment.json
                 '''
             }
         }
