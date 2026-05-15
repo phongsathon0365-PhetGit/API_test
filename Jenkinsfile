@@ -17,8 +17,8 @@ pipeline {
 
                 newman run postman/DEMO-API.postman_collection.json \
                 -e postman/SIT.postman_environment.json \
-                -r cli,html \
-                --reporter-html-export reports/newman-report.html
+                -r cli,htmlextra \
+                --reporter-htmlextra-export reports/newman-report.html
                 '''
             }
         }
