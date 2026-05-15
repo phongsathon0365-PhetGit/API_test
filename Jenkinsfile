@@ -2,18 +2,11 @@ pipeline {
     agent any
 
     stages {
-
         stage('Check Newman') {
             steps {
                 sh 'node -v'
                 sh 'npm -v'
                 sh 'newman -v'
-            }
-        }
-
-        stage('Install HTML Reporter') {
-            steps {
-                sh 'npm install -g newman-reporter-html'
             }
         }
 
